@@ -8,7 +8,7 @@
 
 void printDevMode(const DEVMODE& dm) {
 	std::wcout << std::left
-		<< std::setw(13) << std::to_wstring(dm.dmPelsWidth) + L" x " + std::to_wstring(dm.dmPelsHeight) + L"  "
+		<< std::setw(11) << std::to_wstring(dm.dmPelsWidth) + L"x" + std::to_wstring(dm.dmPelsHeight) + L"  "
 		<< std::setw(7) << std::to_wstring(dm.dmDisplayFrequency) + L"hz  "
 		<< std::setw(7) << std::to_wstring(dm.dmBitsPerPel) + L"bit  "
 		<< std::setw(7);
@@ -61,6 +61,39 @@ void printAllModes() {
 			}
 			printDevMode(dm);
 		}
+
+		std::wcout << std::endl;
+	}
+}
+
+void printCurrentModes() {
+	DISPLAY_DEVICE dd;
+	DEVMODE dm;
+
+	for (DWORD iDevNum = 0; true; iDevNum++) {
+		ZeroMemory(&dd, sizeof(DISPLAY_DEVICE));
+		dd.cb = sizeof(DISPLAY_DEVICE);
+		if (!EnumDisplayDevices(nullptr, iDevNum, &dd, 0)) {
+			break;
+		}
+
+		if (!(dd.StateFlags & DISPLAY_DEVICE_ACTIVE) || dd.StateFlags & DISPLAY_DEVICE_MIRRORING_DRIVER) {
+			continue;
+		}
+
+		std::wcout << &dd.DeviceName[4];
+		if (dd.StateFlags & DISPLAY_DEVICE_PRIMARY_DEVICE) {
+			std::wcout << L" (Primary)";
+		}
+		std::wcout << L":" << std::endl;
+
+		ZeroMemory(&dm, sizeof(DEVMODE));
+		dm.dmSize = sizeof(DEVMODE);
+		dm.dmDriverExtra = 0;
+		if (!EnumDisplaySettings(dd.DeviceName, ENUM_CURRENT_SETTINGS, &dm)) {
+			continue;
+		}
+		printDevMode(dm);
 
 		std::wcout << std::endl;
 	}
