@@ -1,4 +1,3 @@
-#define UNICODE
 #define WIN32_LEAN_AND_MEAN
 
 #include <Windows.h>
@@ -6,7 +5,7 @@
 #include <iomanip>
 #include <string>
 
-void printDevMode(const DEVMODE& dm) {
+void printDevMode(const DEVMODEW& dm) {
 	std::wcout << std::left
 		<< std::setw(11) << std::to_wstring(dm.dmPelsWidth) + L"x" + std::to_wstring(dm.dmPelsHeight) + L"  "
 		<< std::setw(7) << std::to_wstring(dm.dmDisplayFrequency) + L"hz  "
@@ -32,13 +31,13 @@ void printDevMode(const DEVMODE& dm) {
 }
 
 void printAllModes() {
-	DISPLAY_DEVICE dd;
-	DEVMODE dm;
+	DISPLAY_DEVICEW dd;
+	DEVMODEW dm;
 
 	for (DWORD iDevNum = 0; true; iDevNum++) {
-		ZeroMemory(&dd, sizeof(DISPLAY_DEVICE));
-		dd.cb = sizeof(DISPLAY_DEVICE);
-		if (!EnumDisplayDevices(nullptr, iDevNum, &dd, 0)) {
+		ZeroMemory(&dd, sizeof(DISPLAY_DEVICEW));
+		dd.cb = sizeof(DISPLAY_DEVICEW);
+		if (!EnumDisplayDevicesW(nullptr, iDevNum, &dd, 0)) {
 			break;
 		}
 
@@ -53,27 +52,26 @@ void printAllModes() {
 		std::wcout << L":" << std::endl;
 
 		for (DWORD iModeNum = 0; true; iModeNum++) {
-			ZeroMemory(&dm, sizeof(DEVMODE));
-			dm.dmSize = sizeof(DEVMODE);
+			ZeroMemory(&dm, sizeof(DEVMODEW));
+			dm.dmSize = sizeof(DEVMODEW);
 			dm.dmDriverExtra = 0;
-			if (!EnumDisplaySettings(dd.DeviceName, iModeNum, &dm)) {
+			if (!EnumDisplaySettingsW(dd.DeviceName, iModeNum, &dm)) {
 				break;
 			}
 			printDevMode(dm);
 		}
-
 		std::wcout << std::endl;
 	}
 }
 
 void printCurrentModes() {
-	DISPLAY_DEVICE dd;
-	DEVMODE dm;
+	DISPLAY_DEVICEW dd;
+	DEVMODEW dm;
 
 	for (DWORD iDevNum = 0; true; iDevNum++) {
-		ZeroMemory(&dd, sizeof(DISPLAY_DEVICE));
-		dd.cb = sizeof(DISPLAY_DEVICE);
-		if (!EnumDisplayDevices(nullptr, iDevNum, &dd, 0)) {
+		ZeroMemory(&dd, sizeof(DISPLAY_DEVICEW));
+		dd.cb = sizeof(DISPLAY_DEVICEW);
+		if (!EnumDisplayDevicesW(nullptr, iDevNum, &dd, 0)) {
 			break;
 		}
 
@@ -87,14 +85,13 @@ void printCurrentModes() {
 		}
 		std::wcout << L":" << std::endl;
 
-		ZeroMemory(&dm, sizeof(DEVMODE));
-		dm.dmSize = sizeof(DEVMODE);
+		ZeroMemory(&dm, sizeof(DEVMODEW));
+		dm.dmSize = sizeof(DEVMODEW);
 		dm.dmDriverExtra = 0;
-		if (!EnumDisplaySettings(dd.DeviceName, ENUM_CURRENT_SETTINGS, &dm)) {
+		if (!EnumDisplaySettingsW(dd.DeviceName, ENUM_CURRENT_SETTINGS, &dm)) {
 			continue;
 		}
 		printDevMode(dm);
-
 		std::wcout << std::endl;
 	}
 }
@@ -107,16 +104,16 @@ void changeMode(int displayNum, int modeNum) {
 		displayNamePtr = displayName.c_str();
 	}
 
-	DEVMODE dm;
-	ZeroMemory(&dm, sizeof(DEVMODE));
-	dm.dmSize = sizeof(DEVMODE);
+	DEVMODEW dm;
+	ZeroMemory(&dm, sizeof(DEVMODEW));
+	dm.dmSize = sizeof(DEVMODEW);
 	dm.dmDriverExtra = 0;
-	if (!EnumDisplaySettings(displayNamePtr, modeNum - 1, &dm)) {
+	if (!EnumDisplaySettingsW(displayNamePtr, modeNum - 1, &dm)) {
 		std::wcout << L"The display and/or mode number is invalid." << std::endl;
 		return;
 	}
 
-	switch (ChangeDisplaySettingsEx(displayNamePtr, &dm, nullptr, CDS_UPDATEREGISTRY, nullptr))
+	switch (ChangeDisplaySettingsExW(displayNamePtr, &dm, nullptr, CDS_UPDATEREGISTRY, nullptr))
 	{
 	case DISP_CHANGE_SUCCESSFUL:
 		std::wcout << L"OK";
@@ -149,7 +146,7 @@ void changeMode(int displayNum, int modeNum) {
 	std::wcout << std::endl;
 }
 
-int main()
+int wmain()
 {
 	printAllModes();
 }
