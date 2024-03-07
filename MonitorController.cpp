@@ -99,6 +99,56 @@ void printCurrentModes() {
 	}
 }
 
+void changeMode(int displayNum, int modeNum) {
+	LPCWSTR displayNamePtr = nullptr;
+	std::wstring displayName{ L"\\\\.\\DISPLAY" };
+	if (displayNum > 0) {
+		displayName.append(std::to_wstring(displayNum));
+		displayNamePtr = displayName.c_str();
+	}
+
+	DEVMODE dm;
+	ZeroMemory(&dm, sizeof(DEVMODE));
+	dm.dmSize = sizeof(DEVMODE);
+	dm.dmDriverExtra = 0;
+	if (!EnumDisplaySettings(displayNamePtr, modeNum - 1, &dm)) {
+		std::wcout << L"The display and/or mode number is invalid." << std::endl;
+		return;
+	}
+
+	switch (ChangeDisplaySettingsEx(displayNamePtr, &dm, nullptr, CDS_UPDATEREGISTRY, nullptr))
+	{
+	case DISP_CHANGE_SUCCESSFUL:
+		std::wcout << L"OK";
+		break;
+	case DISP_CHANGE_BADDUALVIEW:
+		std::wcout << L"The settings change was unsuccessful because the system is DualView capable.";
+		break;
+	case DISP_CHANGE_BADFLAGS:
+		std::wcout << L"An invalid set of flags was passed in.";
+		break;
+	case DISP_CHANGE_BADMODE:
+		std::wcout << L"The graphics mode is not supported.";
+		break;
+	case DISP_CHANGE_BADPARAM:
+		std::wcout << L"An invalid parameter was passed in. This can include an invalid flag or combination of flags.";
+		break;
+	case DISP_CHANGE_FAILED:
+		std::wcout << L"The display driver failed the specified graphics mode.";
+		break;
+	case DISP_CHANGE_NOTUPDATED:
+		std::wcout << L"Unable to write settings to the registry.";
+		break;
+	case DISP_CHANGE_RESTART:
+		std::wcout << L"The computer must be restarted for the graphics mode to work.";
+		break;
+	default:
+		std::wcout << L"Unknown error.";
+		break;
+	}
+	std::wcout << std::endl;
+}
+
 int main()
 {
 	printAllModes();
