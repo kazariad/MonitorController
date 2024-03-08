@@ -20,18 +20,19 @@ void printDevMode(const DEVMODEW& dm) {
 	switch (dm.dmDisplayFixedOutput)
 	{
 	case DMDFO_DEFAULT:
-		std::wcout << L"DEFAULT" << std::endl;
+		std::wcout << L"DEFAULT";
 		break;
 	case DMDFO_CENTER:
-		std::wcout << L"CENTER" << std::endl;
+		std::wcout << L"CENTER";
 		break;
 	case DMDFO_STRETCH:
-		std::wcout << L"STRETCH" << std::endl;
+		std::wcout << L"STRETCH";
 		break;
 	default:
-		std::wcout << L"UNKNOWN" << std::endl;
+		std::wcout << L"UNKNOWN";
 		break;
 	}
+	std::wcout << std::endl << std::right;
 }
 
 void printAllModes() {
@@ -55,13 +56,15 @@ void printAllModes() {
 		}
 		std::wcout << L":" << std::endl;
 
-		for (DWORD iModeNum = 0; true; iModeNum++) {
+		for (DWORD iModeNum = 0; true;) {
 			ZeroMemory(&dm, sizeof(DEVMODEW));
 			dm.dmSize = sizeof(DEVMODEW);
 			dm.dmDriverExtra = 0;
-			if (!EnumDisplaySettingsW(dd.DeviceName, iModeNum, &dm)) {
+			if (!EnumDisplaySettingsW(dd.DeviceName, iModeNum++, &dm)) {
 				break;
 			}
+
+			std::wcout << std::left << std::setw(4) << std::to_wstring(iModeNum) + L"." << L"  ";
 			printDevMode(dm);
 		}
 		std::wcout << std::endl;
@@ -95,6 +98,7 @@ void printCurrentModes() {
 		if (!EnumDisplaySettingsW(dd.DeviceName, ENUM_CURRENT_SETTINGS, &dm)) {
 			continue;
 		}
+
 		printDevMode(dm);
 		std::wcout << std::endl;
 	}
@@ -158,7 +162,7 @@ void printHelp() {
 		<< std::setw(40) << L"-c, --list-current-modes" << "Print current mode for all active displays.\n"
 		<< std::setw(40) << L"-s, --set-mode [displayNum] modeNum" << "Set the display mode.\n"
 		<< std::setw(40) << L"" << "displayNum is optional, if omitted mode will be set for the Primary display."
-		<< std::endl;
+		<< std::endl << std::right;
 }
 
 void invalidArgsExit() {
