@@ -1,9 +1,10 @@
 #define WIN32_LEAN_AND_MEAN
 
-#include <Windows.h>
+#include <cwchar>
 #include <iostream>
 #include <iomanip>
 #include <string>
+#include <Windows.h>
 
 void printDevMode(const DEVMODEW& dm) {
 	std::wcout << std::left
@@ -15,19 +16,18 @@ void printDevMode(const DEVMODEW& dm) {
 	switch (dm.dmDisplayFixedOutput)
 	{
 	case DMDFO_DEFAULT:
-		std::wcout << L"DEFAULT";
+		std::wcout << L"DEFAULT" << std::endl;
 		break;
 	case DMDFO_CENTER:
-		std::wcout << L"CENTER";
+		std::wcout << L"CENTER" << std::endl;
 		break;
 	case DMDFO_STRETCH:
-		std::wcout << L"STRETCH";
+		std::wcout << L"STRETCH" << std::endl;
 		break;
 	default:
-		std::wcout << L"UNKNOWN";
+		std::wcout << L"UNKNOWN" << std::endl;
 		break;
 	}
-	std::wcout << std::endl;
 }
 
 void printAllModes() {
@@ -96,7 +96,7 @@ void printCurrentModes() {
 	}
 }
 
-void changeMode(int displayNum, int modeNum) {
+int setMode(DWORD displayNum, DWORD modeNum) {
 	LPCWSTR displayNamePtr = nullptr;
 	std::wstring displayName{ L"\\\\.\\DISPLAY" };
 	if (displayNum > 0) {
@@ -110,43 +110,94 @@ void changeMode(int displayNum, int modeNum) {
 	dm.dmDriverExtra = 0;
 	if (!EnumDisplaySettingsW(displayNamePtr, modeNum - 1, &dm)) {
 		std::wcout << L"The display and/or mode number is invalid." << std::endl;
-		return;
+		return 1;
 	}
 
 	switch (ChangeDisplaySettingsExW(displayNamePtr, &dm, nullptr, CDS_UPDATEREGISTRY, nullptr))
 	{
 	case DISP_CHANGE_SUCCESSFUL:
-		std::wcout << L"OK";
-		break;
+		std::wcout << L"OK" << std::endl;
+		return 0;
 	case DISP_CHANGE_BADDUALVIEW:
-		std::wcout << L"The settings change was unsuccessful because the system is DualView capable.";
-		break;
+		std::wcout << L"The settings change was unsuccessful because the system is DualView capable." << std::endl;
+		return 1;
 	case DISP_CHANGE_BADFLAGS:
-		std::wcout << L"An invalid set of flags was passed in.";
-		break;
+		std::wcout << L"An invalid set of flags was passed in." << std::endl;
+		return 1;
 	case DISP_CHANGE_BADMODE:
-		std::wcout << L"The graphics mode is not supported.";
-		break;
+		std::wcout << L"The graphics mode is not supported." << std::endl;
+		return 1;
 	case DISP_CHANGE_BADPARAM:
-		std::wcout << L"An invalid parameter was passed in. This can include an invalid flag or combination of flags.";
-		break;
+		std::wcout << L"An invalid parameter was passed in. This can include an invalid flag or combination of flags." << std::endl;
+		return 1;
 	case DISP_CHANGE_FAILED:
-		std::wcout << L"The display driver failed the specified graphics mode.";
-		break;
+		std::wcout << L"The display driver failed the specified graphics mode." << std::endl;
+		return 1;
 	case DISP_CHANGE_NOTUPDATED:
-		std::wcout << L"Unable to write settings to the registry.";
-		break;
+		std::wcout << L"Unable to write settings to the registry." << std::endl;
+		return 1;
 	case DISP_CHANGE_RESTART:
-		std::wcout << L"The computer must be restarted for the graphics mode to work.";
-		break;
+		std::wcout << L"The computer must be restarted for the graphics mode to work." << std::endl;
+		return 1;
 	default:
-		std::wcout << L"Unknown error.";
-		break;
+		std::wcout << L"Unknown error." << std::endl;
+		return 1;
 	}
-	std::wcout << std::endl;
 }
 
-int wmain()
+void printHelp() {
+	std::wcout << std::left
+		<< L"Monitor Controller v1.0\n"
+		<< L"usage:\n"
+		<< std::setw(40) << L"-h, --help" << "Print this help page.\n"
+		<< std::setw(40) << L"-a, --list-all-modes" << "Print all modes for all active displays.\n"
+		<< std::setw(40) << L"-c, --list-current-modes" << "Print current mode for all active displays.\n"
+		<< std::setw(40) << L"-s, --set-mode [displayNum] modeNum" << "Set the display mode.\n"
+		<< std::setw(40) << L"" << "displayNum is optional, if omitted mode will be set for the Primary display."
+		<< std::endl;
+}
+
+void invalidArgsExit() {
+	std::wcout << L"Invalid args. Use -h or --help to view usage instructions." << std::endl;
+	exit(1);
+}
+
+int wmain(int argc, wchar_t *argv[])
 {
-	printAllModes();
+	if (argc < 2 || argc > 4) {
+		invalidArgsExit();
+	}
+
+	if (std::wcscmp(argv[1], L"-h") == 0 || std::wcscmp(argv[1], L"--help") == 0) {
+		printHelp();
+	}
+	else if (std::wcscmp(argv[1], L"-a") == 0 || std::wcscmp(argv[1], L"--list-all-modes") == 0) {
+		printAllModes();
+	}
+	else if (std::wcscmp(argv[1], L"-c") == 0 || std::wcscmp(argv[1], L"--list-current-modes") == 0) {
+		printCurrentModes();
+	}
+	else if ((std::wcscmp(argv[1], L"-s") == 0 || std::wcscmp(argv[1], L"--set-mode") == 0) && argc > 2) {
+		DWORD displayNum;
+		DWORD modeNum;
+
+		try {
+			if (argc == 3) {
+				displayNum = 0;
+				modeNum = std::stoul(argv[2]);
+			}
+			else {
+				displayNum = std::stoul(argv[2]);
+				modeNum = std::stoul(argv[3]);
+			}
+		}
+		catch (...) {
+			invalidArgsExit();
+		}
+
+		return setMode(displayNum, modeNum);
+	}
+	else {
+		invalidArgsExit();
+	}
 }
