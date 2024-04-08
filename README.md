@@ -8,10 +8,10 @@ Packaged as a simple, dependency-free executable compatible with Windows 7 SP1+ 
 
 ```./MonitorController -a, --list-all-modes```
 
-Print all modes for all active displays.  A mode consists of a resolution, refresh rate, color depth, and scaling format.  The scaling format determines how to adjust the image when outputting at a resolution below the display's native resolution.
-STRETCH:	Image is stretched to fit the entire screen.
-CENTER:		Image is displayed in its original resolution in the center of the screen surrounded by black bars.
-DEFAULT:	Use the display's default option.
+Print all modes for all active displays.  A mode consists of a resolution, refresh rate, color depth, and scaling format.  The scaling format determines how to adjust the image when outputting at a resolution below the display's native resolution.<br>
+STRETCH: Image is stretched to fit the entire screen.<br>
+CENTER: Image is displayed in its original resolution in the center of the screen surrounded by black bars.<br>
+DEFAULT: Use the display's default option.
 
 ```
 ./MonitorController -a
@@ -35,9 +35,7 @@ DISPLAY1 (Primary):
 209.  3440x1440  100hz  32bit  DEFAULT
 210.  3440x1440  144hz  32bit  DEFAULT
 ```
-
-<br>
-
+---
 ```./MonitorController -c, --list-current-modes```
 
 Print current mode for all active displays.  
@@ -48,9 +46,7 @@ Print current mode for all active displays.
 DISPLAY1 (Primary):
 3440x1440  144hz  32bit  DEFAULT
 ```
-
-<br>
-
+---
 ```./MonitorController -s, --set-mode [displayNum] modeNum```
 
 Change the display mode.  ```displayNum``` and ```modeNum``` are taken from the output of ```--list-all-modes```.  If ```displayNum``` is omitted, the Primary display will be used by default.  The display and mode indexes are generally static unless there is a change in the physical monitor configuration, so they can be cached without having to invoke ```--list-all-modes``` repeatedly.
@@ -60,10 +56,7 @@ Change the display mode.  ```displayNum``` and ```modeNum``` are taken from the 
 
 OK
 ```
-
-
-<br>
-
+---
 ```./MonitorController -h, --help```
 
 Print the help page.
